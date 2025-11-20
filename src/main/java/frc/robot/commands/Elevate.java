@@ -17,9 +17,12 @@ import static frc.robot.configs.constants.PhysicalConstants.Elevator.ELEVATOR_PO
 import static frc.robot.configs.constants.PhysicalConstants.Elevator.ELEVATOR_PROCESSOR_HEIGHT;
 import static frc.robot.configs.constants.PhysicalConstants.Elevator.ELEVATOR_REST_HEIGHT;
 import static frc.robot.configs.constants.PhysicalConstants.Elevator.ELEVATOR_UPPER_LIMIT_SWITCH_HEIGHT;
+import static frc.robot.configs.constants.PhysicalConstants.Elevator.SPEED_FACTOR;
+
 
 import edu.wpi.first.math.trajectory.TrapezoidProfile.Constraints;
 import edu.wpi.first.wpilibj2.command.Command;
+import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
 import frc.robot.subsystems.Elevator;
 
 //Did same thing for elevate (used revlib instead of evanlib), elevate lowkey a good name
@@ -29,8 +32,17 @@ public class Elevate extends Command {
 
     private final double elevatorSpeed;
     private final double elevatorAcceleration;
+    private CommandXboxController xbox;
+
 
     public Elevate(double targetPosition) {
+        this.elevator = Elevator.getInstance();
+        this.targetPosition = targetPosition;
+        this.elevatorSpeed = POS_CONSTRAINTS.maxVelocity;
+        this.elevatorAcceleration = POS_CONSTRAINTS.maxAcceleration;
+        addRequirements(elevator);
+    }
+    public Elevate(double targetPosition, CommandXboxController xbox) {
         this.elevator = Elevator.getInstance();
         this.targetPosition = targetPosition;
         this.elevatorSpeed = POS_CONSTRAINTS.maxVelocity;
@@ -69,15 +81,10 @@ public class Elevate extends Command {
             )
         );
     }
-    public void moveWithJoystick(double value) {
-        // deadzone check
-        if(Math.abs(value) < 0.05) {
-            elevator.setElevatorMotorPercent(0);
-            return;
-        }
-
-        double motorOutput = value * 0.5; // adjust max speed as needed
-        elevator.setElevatorMotorPercent(motorOutput);
+    public void moveWithJoystick(double set, CommandXboxController xbox) {
+        elevator.setSpeed(-xbox.getLeftY() * SPEED_FACTOR);
+        // double motorOutput = value * 1; // adjust max speed as needed
+        // elevator.setElevatorMotorPercent(motorOutput);
     }
 
     @Override

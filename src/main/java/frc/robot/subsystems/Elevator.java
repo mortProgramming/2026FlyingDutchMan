@@ -33,7 +33,7 @@ public class Elevator extends SubsystemBase {
     private final DigitalInput lowerLimitSwitch;
     private final DigitalInput upperLimitSwitch;
 
-    private double motorSpeed;
+    private double motorSpeed = 0;
     private double elevatorPosition;
     private double rotationsCompleted;
 
@@ -118,6 +118,10 @@ public class Elevator extends SubsystemBase {
         }
     }
 
+    public void setSpeed(double speed){
+        motor.set(speed);
+    }
+
     public double getElevatorPositionInches() {
         return elevatorPosition;
     }
@@ -132,6 +136,10 @@ public class Elevator extends SubsystemBase {
 
     public ProfiledPIDController getPIDController() {
         return controller;
+    }
+
+    public void setMotorPercent(double motorSpeed){
+        this.motorSpeed=motorSpeed+(-0.05);
     }
 
     private double calculateElevatorPosition() {

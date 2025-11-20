@@ -17,6 +17,8 @@ public class PhysicalConstants {
 		// public static final double ELEVATOR_UPPER_LIMIT_SWITCH_HEIGHT = -71.8;
 		public static final double ELEVATOR_UPPER_LIMIT_SWITCH_HEIGHT = -69.4;
 
+		public static final double SPEED_FACTOR = 0.5;
+
 		/*
 			to fix offset, move the elevator to its lowest possible position, 
 			then subtract the position value from the current offset value

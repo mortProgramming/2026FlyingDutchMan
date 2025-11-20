@@ -24,6 +24,7 @@ import frc.robot.commands.AlignToTag;
 import frc.robot.commands.Elevate;
 import frc.robot.commands.GoToAprilTag;
 import frc.robot.commands.HuntTag;
+import frc.robot.commands.moveElevator;
 import frc.robot.commands.autons.BasicCommands;
 import frc.robot.commands.autons.LimelightTest;
 import frc.robot.commands.autons.Taxi;
@@ -31,8 +32,6 @@ import frc.robot.configs.constants.TunerConstants;
 import frc.robot.subsystems.CommandSwerveDrivetrain;
 import frc.robot.subsystems.Elevator;
 import frc.robot.subsystems.Vision;
-
-
 
 public class RobotContainer {
     private double MaxSpeed = TunerConstants.kSpeedAt12Volts.in(MetersPerSecond); // kSpeedAt12Volts desired top speed
@@ -57,7 +56,7 @@ public class RobotContainer {
     public RobotContainer() {
         configureBindings();
         // configureAutoBuilder();
-        configureAuto();
+        // configureAuto();
     }
 
     private void configureBindings() {
@@ -66,9 +65,9 @@ public class RobotContainer {
         drivetrain.setDefaultCommand(
             // Drivetrain will execute this command periodically
             drivetrain.applyRequest(() ->
-                drive.withVelocityX(-joystick.getY() * MaxSpeed * (((-joystick.getThrottle() + 1 ) / 2) + 0.1)) // Drive forward with negative Y (forward)
-            .withVelocityY(-joystick.getX() * MaxSpeed * (((-joystick.getThrottle() + 1 ) / 2) + 0.1)) // Drive left with negative X (left)
-            .withRotationalRate(-joystick.getTwist() * MaxAngularRate * (((-joystick.getThrottle() + 1 ) / 2) + 0.1)) // Drive counterclockwise with negative X (left)
+                drive.withVelocityX(-xbox.getLeftY() * MaxSpeed * (((-joystick.getThrottle() + 1 ) / 2) + 0.1)) // Drive forward with negative Y (forward)
+            .withVelocityY(-xbox.getLeftX() * MaxSpeed * (((-joystick.getThrottle() + 1 ) / 2) + 0.1)) // Drive left with negative X (left)
+            .withRotationalRate(-xbox.getRightX() * MaxAngularRate * (((-joystick.getThrottle() + 1 ) / 2) + 0.1)) // Drive counterclockwise with negative X (left)
             )
         );
 
@@ -84,7 +83,6 @@ public class RobotContainer {
         joystick.trigger().onTrue(drivetrain.runOnce(() -> drivetrain.seedFieldCentric()));
         drivetrain.registerTelemetry(logger::telemeterize);
 
-
         // Elevator controls
         Elevator elevator = Elevator.getInstance();
         wController.pov(90).onTrue(Elevate.rest());
@@ -93,16 +91,14 @@ public class RobotContainer {
         wController.pov(0).onTrue(Elevate.l4());
 
         //Drive Stop Command
-        joystick.button(2).toggleOnTrue(drivetrain.driveLockCommand(0,0,0));
+        xbox.y().toggleOnTrue(drivetrain.driveLockCommand(0,0,0));
 
         //Safe control incase bad things happen
-        Elevate elevatorCommand = new Elevate(0);
-        new Trigger(() -> wController.getLeftY() > 0.05).whileTrue(Commands.run(() -> elevatorCommand.moveWithJoystick(wController.getLeftY())));
-        new Trigger(() -> wController.getLeftY() < -0.05).whileTrue(Commands.run(() -> elevatorCommand.moveWithJoystick(wController.getLeftY())));
-    
+        new Trigger(() -> wController.getLeftY() > 0.05).whileTrue(new moveElevator(wController));
+        new Trigger(() -> wController.getLeftY() < -0.05).whileTrue(new moveElevator(wController));
         // Hunt Tag - Teleop - while holding button 3 on joystick should be able to angle and 
         // align toward the april tag to move toward it and away from it
-        joystick.button(3).whileTrue(new HuntTag(drivetrain, vision));
+        xbox.x().whileTrue(new HuntTag(drivetrain, vision));
 
         // Go To April Tag - Auton - when a is pressed go to april tag within distance set to score 
         // (set to 10cm and 5 degrees currently)
