@@ -65,9 +65,9 @@ public class RobotContainer {
         drivetrain.setDefaultCommand(
             // Drivetrain will execute this command periodically
             drivetrain.applyRequest(() ->
-                drive.withVelocityX(-xbox.getLeftY() * MaxSpeed * (((-joystick.getThrottle() + 1 ) / 2) + 0.1)) // Drive forward with negative Y (forward)
-            .withVelocityY(-xbox.getLeftX() * MaxSpeed * (((-joystick.getThrottle() + 1 ) / 2) + 0.1)) // Drive left with negative X (left)
-            .withRotationalRate(-xbox.getRightX() * MaxAngularRate * (((-joystick.getThrottle() + 1 ) / 2) + 0.1)) // Drive counterclockwise with negative X (left)
+                drive.withVelocityX(-xbox.getLeftY() * MaxSpeed * 0.25) // Drive forward with negative Y (forward)
+            .withVelocityY(-xbox.getLeftX() * MaxSpeed * 0.25) // Drive left with negative X (left)
+            .withRotationalRate(-xbox.getRightX() * MaxAngularRate * 0.25) // Drive counterclockwise with negative X (left)
             )
         );
 
@@ -81,6 +81,7 @@ public class RobotContainer {
 
         // reset the field-centric heading on left bumper press
         joystick.trigger().onTrue(drivetrain.runOnce(() -> drivetrain.seedFieldCentric()));
+
         drivetrain.registerTelemetry(logger::telemeterize);
 
         // Elevator controls
@@ -102,10 +103,10 @@ public class RobotContainer {
 
         // Go To April Tag - Auton - when a is pressed go to april tag within distance set to score 
         // (set to 10cm and 5 degrees currently)
-        wController.a().onTrue(new GoToAprilTag(drivetrain, vision, 0));
+        xbox.a().onTrue(new GoToAprilTag(drivetrain, vision, 0));
 
         //Another Take on "Go To April Tag", lets see how this plays out
-        wController.b().onTrue(new AlignToTag(drivetrain, vision, 0));
+        xbox.b().onTrue(new AlignToTag(drivetrain, vision, 0));
 
     }
     public void configureAuto() {
