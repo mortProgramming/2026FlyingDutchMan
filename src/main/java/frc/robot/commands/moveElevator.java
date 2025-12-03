@@ -9,9 +9,17 @@ import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
 public class moveElevator extends Command{
     private Elevator elevator;
     private CommandXboxController xboxController;
+    private double speed;
+
     public moveElevator(CommandXboxController xboxController){
         elevator = Elevator.getInstance();
         this.xboxController=xboxController;
+        addRequirements(elevator);
+    }
+
+    public moveElevator(double speed){
+        elevator = Elevator.getInstance();
+        this.speed=speed;
         addRequirements(elevator);
     }
 

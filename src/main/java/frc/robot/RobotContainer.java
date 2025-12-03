@@ -39,7 +39,7 @@ public class RobotContainer {
 
     /* Setting up bindings for necessary control of the swerve drive platform */
     private final SwerveRequest.FieldCentric drive = new SwerveRequest.FieldCentric()
-        .withDeadband(MaxSpeed * 0.02).withRotationalDeadband(MaxAngularRate * 0.03)
+        .withDeadband(MaxSpeed * 0.1).withRotationalDeadband(MaxAngularRate * 0.1)
         .withDriveRequestType(DriveRequestType.OpenLoopVoltage); // Use open-loop control for drive motors
     private final SwerveRequest.SwerveDriveBrake brake = new SwerveRequest.SwerveDriveBrake();
     private final SwerveRequest.PointWheelsAt point = new SwerveRequest.PointWheelsAt();
@@ -65,9 +65,9 @@ public class RobotContainer {
         drivetrain.setDefaultCommand(
             // Drivetrain will execute this command periodically
             drivetrain.applyRequest(() ->
-                drive.withVelocityX(-xbox.getLeftY() * MaxSpeed * 0.25) // Drive forward with negative Y (forward)
-            .withVelocityY(-xbox.getLeftX() * MaxSpeed * 0.25) // Drive left with negative X (left)
-            .withRotationalRate(-xbox.getRightX() * MaxAngularRate * 0.25) // Drive counterclockwise with negative X (left)
+                drive.withVelocityX(-xbox.getLeftY() * MaxSpeed) // Drive forward with negative Y (forward)
+            .withVelocityY(-xbox.getLeftX() * MaxSpeed) // Drive left with negative X (left)
+            .withRotationalRate(-xbox.getRightX() * MaxAngularRate) // Drive counterclockwise with negative X (left)
             )
         );
 
@@ -97,6 +97,8 @@ public class RobotContainer {
         //Safe control incase bad things happen
         new Trigger(() -> wController.getLeftY() > 0.05).whileTrue(new moveElevator(wController));
         new Trigger(() -> wController.getLeftY() < -0.05).whileTrue(new moveElevator(wController));
+
+        wController.a().whileTrue(new moveElevator(0.2));
         // Hunt Tag - Teleop - while holding button 3 on joystick should be able to angle and 
         // align toward the april tag to move toward it and away from it
         xbox.x().whileTrue(new HuntTag(drivetrain, vision));

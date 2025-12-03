@@ -41,26 +41,21 @@ public class Elevator extends SubsystemBase {
     private final ElevatorFeedforward feedforward;
 
     private Elevator() {
-        // Initialize motor
         motor = new SparkMax(MOTOR, MotorType.kBrushless);
 
-        // REVLib use
         SparkMaxConfig config = new SparkMaxConfig();
         config
             .inverted(false)
             .idleMode(IdleMode.kBrake)
             .smartCurrentLimit(40);
 
-        // Configure encoder (absolute)
         EncoderConfig encoderConfig = new EncoderConfig();
         encoderConfig.positionConversionFactor(ROTATIONS_TO_INCHES);
         encoderConfig.velocityConversionFactor(ROTATIONS_TO_INCHES);
 
-        // Configure closed-loop
         ClosedLoopConfig pidConfig = new ClosedLoopConfig();
         pidConfig.feedbackSensor(ClosedLoopConfig.FeedbackSensor.kAbsoluteEncoder);
 
-        // Apply configs...
         motor.configure(
             config,
             SparkMax.ResetMode.kResetSafeParameters,
@@ -99,7 +94,6 @@ public class Elevator extends SubsystemBase {
         SmartDashboard.putBoolean("Upper Limit", getAtUpperLimitSwitch());
     }
 
-    // Set elevator output percentage 
     public void setElevatorMotorPercent(double motorPercent) {
         this.motorSpeed = motorPercent + POS_KG;
     }
