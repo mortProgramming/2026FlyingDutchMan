@@ -27,13 +27,18 @@ public class GoToAprilTag extends Command {
     @Override
     public void execute() {
         //Sometimes tag is sensed and immediately not sensed
-
-        // if (!vision.hasTag()) {
-        //     drivetrain.drive(0, 0, 0);
-        //     return;
-        // }
+        if (!vision.hasTag()) {
+            System.out.println("yes");
+        }
 
         Pose2d tagPose = vision.getFieldTagPose(tagID);
+
+        if (tagPose == null) {
+            //stop robot so it doesn't drift
+            drivetrain.drive(0,0,0);
+            return; //keep running until tag is found
+        }
+        
         Pose2d robotPose = drivetrain.getPose();
         
         //Desired x & y locations minus actual

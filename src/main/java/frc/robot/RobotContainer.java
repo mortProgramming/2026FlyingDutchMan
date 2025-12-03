@@ -28,6 +28,8 @@ import frc.robot.commands.moveElevator;
 import frc.robot.commands.autons.BasicCommands;
 import frc.robot.commands.autons.LimelightTest;
 import frc.robot.commands.autons.Taxi;
+import frc.robot.commands.autons.TimedDrive;
+import frc.robot.commands.autons.TimedDriveField;
 import frc.robot.configs.constants.TunerConstants;
 import frc.robot.subsystems.CommandSwerveDrivetrain;
 import frc.robot.subsystems.Elevator;
@@ -71,6 +73,15 @@ public class RobotContainer {
             )
         );
 
+        xbox.start().toggleOnTrue(drivetrain.run(() ->
+            drivetrain.applyRequest(() ->
+                drive.withVelocityX(-xbox.getLeftY() * MaxSpeed)
+                .withVelocityY(0)
+                .withRotationalDeadband(0)
+            )
+        )
+    );
+
         // joystick.a().whileTrue(drivetrain.applyRequest(() -> brake));
         // joystick.b().whileTrue(drivetrain.applyRequest(() ->
             point.withModuleDirection(new Rotation2d(-joystick.getY(), -joystick.getX()));
@@ -80,12 +91,13 @@ public class RobotContainer {
         // Note that each routine should be run exactly once in a single log.
 
         // reset the field-centric heading on left bumper press
-        joystick.trigger().onTrue(drivetrain.runOnce(() -> drivetrain.seedFieldCentric()));
+        xbox.a().onTrue(drivetrain.runOnce(() -> drivetrain.seedFieldCentric()));
 
         drivetrain.registerTelemetry(logger::telemeterize);
 
         // Elevator controls
         Elevator elevator = Elevator.getInstance();
+
         wController.pov(90).onTrue(Elevate.rest());
         wController.pov(270).onTrue(Elevate.l2());
         wController.pov(180).onTrue(Elevate.l3());
@@ -101,7 +113,8 @@ public class RobotContainer {
         wController.a().whileTrue(new moveElevator(0.2));
         // Hunt Tag - Teleop - while holding button 3 on joystick should be able to angle and 
         // align toward the april tag to move toward it and away from it
-        xbox.x().whileTrue(new HuntTag(drivetrain, vision));
+        
+        // xbox.x().whileTrue(new HuntTag(drivetrain, vision));
 
         // Go To April Tag - Auton - when a is pressed go to april tag within distance set to score 
         // (set to 10cm and 5 degrees currently)
@@ -109,6 +122,8 @@ public class RobotContainer {
 
         //Another Take on "Go To April Tag", lets see how this plays out
         xbox.b().onTrue(new AlignToTag(drivetrain, vision, 0));
+
+        xbox.x().onTrue(new TimedDriveField(2,0,0,1.5));
 
     }
     public void configureAuto() {

@@ -26,14 +26,18 @@ public class AlignToTag extends Command {
 
     @Override
     public void execute() {
-
-        // if (!vision.hasTag()) {
-        //     drivetrain.drive(0, 0, 0);
-        //     finished = true;
-        //     return;
-        // }
-
+        if (!vision.hasTag()) {
+            System.out.println("yes");
+        }
+        
         Pose2d tagPose = vision.getFieldTagPose(tagID);
+
+        if (tagPose == null) {
+            //stop robot so it doesn't drift
+            drivetrain.drive(0,0,0);
+            return; //keep running until tag is found
+        }
+
         Pose2d pose = drivetrain.getPose();
 
         double dx = tagPose.getX() - pose.getX();     // forward/back error
