@@ -22,7 +22,8 @@ public class AlignToTag extends Command {
     }
 
     @Override
-    public void initialize() {}
+    public void initialize() {
+    }
 
     @Override
     public void execute() {
@@ -40,8 +41,8 @@ public class AlignToTag extends Command {
 
         Pose2d pose = drivetrain.getPose();
 
-        double dx = tagPose.getX() - pose.getX();     // forward/back error
-        double dy = tagPose.getY() - pose.getY();     // strafe error
+        double dx = tagPose.getX() - pose.getX();
+        double dy = tagPose.getY() - pose.getY();
 
         // Desired angle: face the tag
         double desiredAngle = Math.atan2(dy, dx);

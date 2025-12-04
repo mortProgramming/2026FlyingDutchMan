@@ -72,8 +72,8 @@ public class RobotContainer {
             .withRotationalRate(-xbox.getRightX() * MaxAngularRate) // Drive counterclockwise with negative X (left)
             )
         );
-
-        xbox.start().toggleOnTrue(drivetrain.run(() ->
+        System.out.println(-xbox.getLeftY()*MaxSpeed);
+        xbox.b().whileTrue(drivetrain.run(() ->
             drivetrain.applyRequest(() ->
                 drive.withVelocityX(-xbox.getLeftY() * MaxSpeed)
                 .withVelocityY(0)
@@ -118,7 +118,7 @@ public class RobotContainer {
 
         // Go To April Tag - Auton - when a is pressed go to april tag within distance set to score 
         // (set to 10cm and 5 degrees currently)
-        xbox.a().onTrue(new GoToAprilTag(drivetrain, vision, 0));
+        // xbox.a().onTrue(new GoToAprilTag(drivetrain, vision, 0));
 
         //Another Take on "Go To April Tag", lets see how this plays out
         xbox.b().onTrue(new AlignToTag(drivetrain, vision, 0));
