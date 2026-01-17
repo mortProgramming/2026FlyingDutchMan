@@ -16,24 +16,28 @@ import com.ctre.phoenix6.swerve.SwerveDrivetrainConstants;
 import com.ctre.phoenix6.swerve.SwerveModule;
 import com.ctre.phoenix6.swerve.SwerveModuleConstants;
 import com.ctre.phoenix6.swerve.SwerveRequest;
+import com.pathplanner.lib.auto.AutoBuilder;
+import com.pathplanner.lib.config.PIDConstants;
+import com.pathplanner.lib.controllers.PPHolonomicDriveController;
+import com.pathplanner.lib.util.DriveFeedforwards;
 
 import edu.wpi.first.math.Matrix;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
-import edu.wpi.first.math.kinematics.SwerveDriveOdometry;
+import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.math.numbers.N1;
 import edu.wpi.first.math.numbers.N3;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.DriverStation.Alliance;
 import edu.wpi.first.wpilibj.Notifier;
 import edu.wpi.first.wpilibj.RobotController;
+import edu.wpi.first.wpilibj.smartdashboard.Field2d;
+import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Subsystem;
 import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine;
 import frc.robot.configs.constants.TunerConstants;
 import frc.robot.configs.constants.TunerConstants.TunerSwerveDrivetrain;
-
-
 /**
  * Class that extends the Phoenix 6 SwerveDrivetrain class and implements
  * Subsystem so it can easily be used in command-based projects.
@@ -43,8 +47,6 @@ public class CommandSwerveDrivetrain extends TunerSwerveDrivetrain implements Su
     private static final double MaxSpeed = TunerConstants.kSpeedAt12Volts.in(MetersPerSecond);
     private static final double MaxAngularRate = RotationsPerSecond.of(0.75).in(RadiansPerSecond);
     private final CommandSwerveDrivetrain drivetrain = this;
-    private Pose2d currentPose = new Pose2d();
-    private SwerveDriveOdometry odometry;
     private final SwerveModule<TalonFX, TalonFX, CANcoder>[] swerveModules = getModules();
     private static final double kSimLoopPeriod = 0.005; // 5 ms
     private Notifier m_simNotifier = null;
@@ -63,6 +65,9 @@ public class CommandSwerveDrivetrain extends TunerSwerveDrivetrain implements Su
     private final SwerveRequest.SysIdSwerveRotation m_rotationCharacterization = new SwerveRequest.SysIdSwerveRotation();
 
     private final SwerveRequest.FieldCentric drive = new SwerveRequest.FieldCentric();
+    
+    //For vision
+    private final Field2d field = new Field2d();
 
     /* SysId routine for characterizing translation. This is used to find PID gains for the drive motors. */
     private final SysIdRoutine m_sysIdRoutineTranslation = new SysIdRoutine(
@@ -142,6 +147,7 @@ public class CommandSwerveDrivetrain extends TunerSwerveDrivetrain implements Su
         
     ) {
         super(drivetrainConstants, modules);
+        SmartDashboard.putData("Field", field);
         if (Utils.isSimulation()) {
             startSimThread();
         }
@@ -255,6 +261,12 @@ public class CommandSwerveDrivetrain extends TunerSwerveDrivetrain implements Su
                 m_hasAppliedOperatorPerspective = true;
             });
         }
+        Pose2d pose = getPose();
+            SmartDashboard.putNumber("Pose X (m)", pose.getX());
+            SmartDashboard.putNumber("Pose Y (m)", pose.getY());
+            SmartDashboard.putNumber("Pose Heading (deg)",
+            pose.getRotation().getDegrees());
+            field.setRobotPose(pose);
     }
 
     private void startSimThread() {
@@ -355,19 +367,49 @@ public class CommandSwerveDrivetrain extends TunerSwerveDrivetrain implements Su
         });
     }
     
-    public void setPose(Pose2d newPose) {
-        this.currentPose = newPose;
-    }
-    //Temporary pose method until odometry is figured out
     public Pose2d getPose() {
-        return currentPose;
+        return this.getState().Pose;
     }
 
-    public Command driveLockCommand(double x, double y, double rot) {
-        return run(() -> driveRelative(x, y, rot));
+    public void resetPose(Pose2d pose) {
+        super.resetPose(pose);
     }
 
-    // public Pose2d getPose() {
+    public ChassisSpeeds getRobotRelativeSpeeds() {
+        return this.getState().Speeds;
+    }
 
-    // }
+    public void driveRelativeAutobuilder(ChassisSpeeds speeds) {
+        SwerveRequest request = new SwerveRequest.RobotCentric()
+            .withVelocityX(speeds.vxMetersPerSecond)
+            .withVelocityY(speeds.vyMetersPerSecond)
+            .withRotationalRate(speeds.omegaRadiansPerSecond);
+        setControl(request);
+    }
+
+    public void configureAutoBuilder(){
+        AutoBuilder.configure(
+            () -> drivetrain.getPose(), // Robot pose supplier
+            (Pose2d pose) -> drivetrain.resetPose(pose), // Method to reset odometry (will be called if your auto has a starting pose)
+            () -> drivetrain.getRobotRelativeSpeeds(), // ChassisSpeeds supplier. MUST BE ROBOT RELATIVE
+            (ChassisSpeeds speeds, DriveFeedforwards feedforwards) -> driveRobotRelative(speeds, feedforwards), // Method that will drive the robot given ROBOT RELATIVE ChassisSpeeds. Also optionally outputs individual module feedforwards
+            new PPHolonomicDriveController( // PPHolonomicController is the built in path following controller for holonomic drive trains
+                    new PIDConstants(5.0, 0.0, 0.0), // Translation PID constants (these are not known rn because robot isnt working?)
+                    new PIDConstants(5.0, 0.0, 0.0) // Rotation PID constants
+            ),
+            new RobotConfig(), // The robot configuration
+            () -> {
+              // Boolean supplier that controls when the path will be mirrored for the red alliance
+              // This will flip the path being followed to the red side of the field.
+              // THE ORIGIN WILL REMAIN ON THE BLUE SIDE
+
+              var alliance = DriverStation.getAlliance();
+              if (alliance.isPresent()) {
+                return alliance.get() == DriverStation.Alliance.Red;
+              }
+              return false;
+            },
+            this // Reference to this subsystem to set requirements
+        );
+    }
 }

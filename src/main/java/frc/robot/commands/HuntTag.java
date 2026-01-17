@@ -37,6 +37,7 @@ public class HuntTag extends Command {
     @Override
     public void execute() {
         if (joystick.getRawButton(3)) {
+            // teleop driven limelight command
             if (vision.hasTag()) {
                 double[] data = vision.getPicturePosition();
                 double xAngle = data[0];
@@ -45,6 +46,7 @@ public class HuntTag extends Command {
                 double forwardCommand = -joystick.getY() * maxForwardSpeed;
 
                 drivetrain.drive(forwardCommand, 0, rotCommand);
+                
             } else {
                 drivetrain.drive(0, 0, 0); // stop if no tag
             }

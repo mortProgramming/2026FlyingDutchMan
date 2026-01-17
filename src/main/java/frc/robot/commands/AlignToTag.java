@@ -32,7 +32,6 @@ public class AlignToTag extends Command {
         }
         
         Pose2d tagPose = vision.getFieldTagPose(tagID);
-
         if (tagPose == null) {
             //stop robot so it doesn't drift
             drivetrain.drive(0,0,0);

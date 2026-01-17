@@ -1,98 +1,83 @@
 package frc.robot.commands;
 
-import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.math.geometry.Pose2d;
+import edu.wpi.first.wpilibj2.command.Command;
 import frc.robot.subsystems.CommandSwerveDrivetrain;
 import frc.robot.subsystems.Vision;
 
-// Maily used for auton, prob make more limelight commands later
 public class GoToAprilTag extends Command {
 
     private final CommandSwerveDrivetrain drivetrain;
     private final Vision vision;
     private final int tagID;
-    private boolean isFinished = false;
+
+    private final double kP = 1.0;
+    private final double kProt = 0.03;
 
     public GoToAprilTag(CommandSwerveDrivetrain drivetrain, Vision vision, int tagID) {
         this.drivetrain = drivetrain;
         this.vision = vision;
         this.tagID = tagID;
-    }
-
-    @Override
-    public void initialize() {
-        isFinished = false;
+        addRequirements(drivetrain);
     }
 
     @Override
     public void execute() {
-        //Sometimes tag is sensed and immediately not sensed
-        if (!vision.hasTag()) {
-            System.out.println("yes");
+        Pose2d tagPose = null;
+        if (vision.hasTag()) {
+            tagPose = vision.getFieldTagPose(tagID);
         }
 
-        Pose2d tagPose = vision.getFieldTagPose(tagID);
-
-        if (tagPose == null) {
-            //stop robot so it doesn't drift
-            drivetrain.drive(0,0,0);
-            return; //keep running until tag is found
-        }
-        
         Pose2d robotPose = drivetrain.getPose();
         
-        //Desired x & y locations minus actual
-        double dx = tagPose.getX() - robotPose.getX();
-        double dy = tagPose.getY() - robotPose.getY();
-        
-        double kP = 1.0; // Simple proportional gain
-        double vx = kP * dx;
-        double vy = kP * dy;
+        if (tagPose != null) {
+            double dx = tagPose.getX() - robotPose.getX();
+            double dy = tagPose.getY() - robotPose.getY();
 
-        // Limit max speed
-        double maxSpeed = 2.0; //prob change for testing
-        vx = Math.max(-maxSpeed, Math.min(vx, maxSpeed));
-        vy = Math.max(-maxSpeed, Math.min(vy, maxSpeed));
+            double vx = kP * dx;
+            double vy = kP * dy;
 
-        // angle between robot and tag
-        double desiredAngle = Math.atan2(dy, dx);
+            vx = clamp(vx, -2, 2);
+            vy = clamp(vy, -2, 2);
 
-        // current robot heading
-        double currentAngle = robotPose.getRotation().getRadians();
+            double desiredAngle = Math.atan2(dy, dx);
+            double currentAngle = robotPose.getRotation().getRadians();
 
-        // rotation error
-        double angleError = desiredAngle - currentAngle;
+            double angleError = Math.atan2(Math.sin(desiredAngle - currentAngle),
+            Math.cos(desiredAngle - currentAngle));
 
-        //make in terms of -pi, pi
-        angleError = Math.atan2(Math.sin(angleError), Math.cos(angleError));
+            double rot = kProt * angleError;
+            rot = clamp(rot, -2.5, 2.5);
+            
 
-        // simple proportional rotation
-        double kProt = 0.03;
-        double rot = kProt * angleError;
-
-        // limit rotation speed
-        double maxRotSpeed = 2.5;
-        rot = Math.max(-maxRotSpeed, Math.min(rot, maxRotSpeed));
-
-        drivetrain.drive(vx, vy, rot);
-
-        // finish when close enough AND facing tag, so it doesn't get too close and overshoot
-        boolean positionGood = Math.hypot(dx, dy) < 0.1; // like 10 cm
-        boolean rotationGood = Math.abs(angleError) < 0.08; // around 5 degrees
-
-        if (positionGood && rotationGood) {
-            isFinished = true;
-            drivetrain.drive(0, 0, 0);
+            drivetrain.drive(vx, vy, rot);
         }
     }
 
     @Override
     public boolean isFinished() {
-        return isFinished;
+        Pose2d tagPose = vision.getFieldTagPose(tagID);
+
+        if (!vision.hasTag() || tagPose == null) 
+        return false;
+
+        Pose2d robotPose = drivetrain.getPose();
+
+        double dx = tagPose.getX() - robotPose.getX();
+        double dy = tagPose.getY() - robotPose.getY();
+
+        boolean positionGood = Math.hypot(dx, dy) < 0.10; // within 10 cm
+        boolean rotationGood = Math.abs(robotPose.getRotation().getRadians()) < 0.08;
+
+        return positionGood && rotationGood;
     }
 
     @Override
     public void end(boolean interrupted) {
         drivetrain.drive(0, 0, 0);
+    }
+
+    private double clamp(double v, double min, double max) {
+        return Math.max(min, Math.min(max, v));
     }
 }

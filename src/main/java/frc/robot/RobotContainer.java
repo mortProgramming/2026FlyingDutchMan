@@ -35,6 +35,20 @@ import frc.robot.subsystems.CommandSwerveDrivetrain;
 import frc.robot.subsystems.Elevator;
 import frc.robot.subsystems.Vision;
 
+import com.pathplanner.lib.auto.AutoBuilder;
+import edu.wpi.first.wpilibj.DriverStation;
+import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
+import com.pathplanner.lib.auto.AutoBuilder;
+import com.pathplanner.lib.controllers.PPHolonomicDriveController;
+import com.pathplanner.lib.config.PIDConstants;
+import com.pathplanner.lib.config.RobotConfig;
+import edu.wpi.first.math.kinematics.ChassisSpeeds;
+import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
+import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
+import edu.wpi.first.wpilibj2.command.Command;
+import edu.wpi.first.wpilibj2.command.InstantCommand;
+
+
 public class RobotContainer {
     private double MaxSpeed = TunerConstants.kSpeedAt12Volts.in(MetersPerSecond); // kSpeedAt12Volts desired top speed
     private double MaxAngularRate = RotationsPerSecond.of(0.75).in(RadiansPerSecond); // 3/4 of a rotation per second max angular velocity
@@ -54,6 +68,7 @@ public class RobotContainer {
     private final Vision vision = Vision.getInstance();
     private static SendableChooser<Command> autoChooser;
     public static final CommandSwerveDrivetrain drivetrain = TunerConstants.createDrivetrain();
+    private AutoBuilder autoBuilder;
 
     public RobotContainer() {
         configureBindings();
@@ -72,7 +87,8 @@ public class RobotContainer {
             .withRotationalRate(-xbox.getRightX() * MaxAngularRate) // Drive counterclockwise with negative X (left)
             )
         );
-        System.out.println(-xbox.getLeftY()*MaxSpeed);
+        System.out.println(-xbox.getLeftY() * MaxSpeed);
+
         xbox.b().whileTrue(drivetrain.run(() ->
             drivetrain.applyRequest(() ->
                 drive.withVelocityX(-xbox.getLeftY() * MaxSpeed)
@@ -111,6 +127,7 @@ public class RobotContainer {
         new Trigger(() -> wController.getLeftY() < -0.05).whileTrue(new moveElevator(wController));
 
         wController.a().whileTrue(new moveElevator(0.2));
+        wController.b().whileTrue(new moveElevator(-0.2));
         // Hunt Tag - Teleop - while holding button 3 on joystick should be able to angle and 
         // align toward the april tag to move toward it and away from it
         
@@ -118,10 +135,10 @@ public class RobotContainer {
 
         // Go To April Tag - Auton - when a is pressed go to april tag within distance set to score 
         // (set to 10cm and 5 degrees currently)
-        // xbox.a().onTrue(new GoToAprilTag(drivetrain, vision, 0));
+        xbox.a().onTrue(new GoToAprilTag(drivetrain, vision, 1));
 
         //Another Take on "Go To April Tag", lets see how this plays out
-        xbox.b().onTrue(new AlignToTag(drivetrain, vision, 0));
+        xbox.b().onTrue(new AlignToTag(drivetrain, vision, 1));
 
         xbox.x().onTrue(new TimedDriveField(2,0,0,1.5));
 
@@ -137,6 +154,7 @@ public class RobotContainer {
 
 		SmartDashboard.putData("Auton Chooser", autoChooser);
     }
+    
 
     //I'm lazy so... Make this method "configureAutoBuilder()" work with methods and varibles utilized correctly, check how this team configured
     //There autos since they used ctre swerve like us: https://github.com/HuskieRobotics/frc-software-2025
@@ -144,49 +162,6 @@ public class RobotContainer {
     // and overall make sure each method and varible is accounted for
     //This is important for pathplanner and making the get pose method is helpful to not run into problems with Limelight
     //So GOOD LUCK!
-
-    // public static void configureAutoBuilder() {
-    //     AutoBuilder.configure(
-    //         () -> drivetrain.getPose(), // get current robot pose
-    //         (Pose2d startPose) -> drivetrain.setRobotPosition(startPose), 
-    //         () -> {
-    //             // Convert your drivetrain's current velocity to something AutoBuilder can understand
-    //             // We'll just use requested speeds as a "fake" chassis speed
-    //             return new ChassisSpeeds(
-    //                 drivetrain.drive.getVelocityX().in(MetersPerSecond),
-    //                 drivetrain.drive.getVelocityY().in(MetersPerSecond),
-    //                 drivetrain.drive.getRotationalRate().in(RadiansPerSecond)
-    //             );
-    //         },
-    //         (ChassisSpeeds robotRelativeOutput, DriveFeedforwards feedForwards) -> {
-    //             // Convert ChassisSpeeds back into your FieldCentric request
-    //             drivetrain.applyRequest(() -> drivetrain.drive
-    //                 .withVelocityX(robotRelativeOutput.vxMetersPerSecond)
-    //                 .withVelocityY(robotRelativeOutput.vyMetersPerSecond)
-    //                 .withRotationalRate(robotRelativeOutput.omegaRadiansPerSecond)
-    //             );
-    //         },
-    //         new PPHolonomicDriveController(
-    //             new PIDConstants(AUTON_POS_KP, AUTON_POS_KI, AUTON_POS_KD),
-    //             new PIDConstants(AUTON_ROTATION_KP, AUTON_ROTATION_KI, AUTON_ROTATION_KD)
-    //         ),
-    //         new RobotConfig(
-    //             ROBOT_MASS,
-    //             ROBOT_MOMENT_OF_INERTIA,
-    //             new ModuleConfig(
-    //                 WHEEL_DIAMETER / 2,
-    //                 MaxSpeed, // use your CTRE max speed
-    //                 WHEEL_COEFFICIENT_OF_FRICTION,
-    //                 DCMotor.getKrakenX60(1).withReduction(1 / DRIVE_REDUCTION),
-    //                 DRIVE_MOTOR_CURRENT_LIMIT,
-    //                 1
-    //             ),
-    //             DRIVETRAIN_WHEELBASE_METERS
-    //         ),
-    //         () -> false, // alliance flipping
-    //         drivetrain
-    //     );
-    // }
     
 // SmartDashboard.putString("AutoBuilderConfigured", "true");
 

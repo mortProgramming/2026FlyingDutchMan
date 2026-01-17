@@ -42,7 +42,7 @@ public class Elevator extends SubsystemBase {
 
     private Elevator() {
         motor = new SparkMax(MOTOR, MotorType.kBrushless);
-
+        
         SparkMaxConfig config = new SparkMaxConfig();
         config
             .inverted(false)
@@ -55,12 +55,13 @@ public class Elevator extends SubsystemBase {
 
         ClosedLoopConfig pidConfig = new ClosedLoopConfig();
         pidConfig.feedbackSensor(ClosedLoopConfig.FeedbackSensor.kAbsoluteEncoder);
-
+        
         motor.configure(
             config,
             SparkMax.ResetMode.kResetSafeParameters,
             SparkMax.PersistMode.kPersistParameters
         );
+        // motor.configureEncoder(encoderConfig);
 
         absEncoder = motor.getAbsoluteEncoder();
         closedLoop = motor.getClosedLoopController();
@@ -130,11 +131,11 @@ public class Elevator extends SubsystemBase {
 
     public ProfiledPIDController getPIDController() {
         return controller;
-    }
+    }   
 
     public void setMotorPercent(double motorSpeed){
         this.motorSpeed=motorSpeed+(-0.05);
-    }
+    }   
 
     private double calculateElevatorPosition() {
         double inchesFound = (getAbsoluteEncoderPositionRotations() + rotationsCompleted) * ROTATIONS_TO_INCHES;
