@@ -1,5 +1,6 @@
 package frc.robot.commands.autons;
 
+import frc.robot.commands.AlignToTag;
 import frc.robot.commands.Elevate;
 import frc.robot.commands.GoToAprilTag;
 import frc.robot.commands.HuntTag;
@@ -21,6 +22,7 @@ public class BasicCommands {
             NamedCommands.registerCommand("L4", Elevate.l4());
             NamedCommands.registerCommand("Rest", Elevate.rest());
             NamedCommands.registerCommand("Intake", Elevate.intake());
-            NamedCommands.registerCommand("GoLimelight", new GoToAprilTag(drivetrain, vision, 0).withTimeout(5.0));    
+            NamedCommands.registerCommand("GoLimelight", new GoToAprilTag(drivetrain, vision, vision.getTagId()).withTimeout(5.0));    
+            NamedCommands.registerCommand("AlignToTag",new AlignToTag(drivetrain, vision, 0));
     }
 }

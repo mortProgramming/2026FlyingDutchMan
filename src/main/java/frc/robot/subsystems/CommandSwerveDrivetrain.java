@@ -8,6 +8,8 @@ import static edu.wpi.first.units.Units.Volts;
 
 import java.util.function.Supplier;
 
+import static frc.robot.configs.constants.PhysicalConstants.Drivetrain.*;
+
 import com.ctre.phoenix6.SignalLogger;
 import com.ctre.phoenix6.Utils;
 import com.ctre.phoenix6.hardware.CANcoder;
@@ -17,7 +19,9 @@ import com.ctre.phoenix6.swerve.SwerveModule;
 import com.ctre.phoenix6.swerve.SwerveModuleConstants;
 import com.ctre.phoenix6.swerve.SwerveRequest;
 import com.pathplanner.lib.auto.AutoBuilder;
+import com.pathplanner.lib.config.ModuleConfig;
 import com.pathplanner.lib.config.PIDConstants;
+import com.pathplanner.lib.config.RobotConfig;
 import com.pathplanner.lib.controllers.PPHolonomicDriveController;
 import com.pathplanner.lib.util.DriveFeedforwards;
 
@@ -27,6 +31,7 @@ import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.math.numbers.N1;
 import edu.wpi.first.math.numbers.N3;
+import edu.wpi.first.math.system.plant.DCMotor;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.DriverStation.Alliance;
 import edu.wpi.first.wpilibj.Notifier;
@@ -392,12 +397,25 @@ public class CommandSwerveDrivetrain extends TunerSwerveDrivetrain implements Su
             () -> drivetrain.getPose(), // Robot pose supplier
             (Pose2d pose) -> drivetrain.resetPose(pose), // Method to reset odometry (will be called if your auto has a starting pose)
             () -> drivetrain.getRobotRelativeSpeeds(), // ChassisSpeeds supplier. MUST BE ROBOT RELATIVE
-            (ChassisSpeeds speeds, DriveFeedforwards feedforwards) -> driveRobotRelative(speeds, feedforwards), // Method that will drive the robot given ROBOT RELATIVE ChassisSpeeds. Also optionally outputs individual module feedforwards
+            (ChassisSpeeds speeds) -> driveRelativeAutobuilder(speeds), // Method that will drive the robot given ROBOT RELATIVE ChassisSpeeds. Also optionally outputs individual module feedforwards
             new PPHolonomicDriveController( // PPHolonomicController is the built in path following controller for holonomic drive trains
                     new PIDConstants(5.0, 0.0, 0.0), // Translation PID constants (these are not known rn because robot isnt working?)
                     new PIDConstants(5.0, 0.0, 0.0) // Rotation PID constants
             ),
-            new RobotConfig(), // The robot configuration
+            new RobotConfig(
+                ROBOT_MASS,
+                ROBOT_MOMENT_OF_INERTIA,
+                new ModuleConfig(
+                    WHEEL_DIAMETER / 2,
+                    MAX_SPEED,
+                    WHEEL_COEFFICIENT_OF_FRICTION,
+                    // DCMotor.getKrakenX60(1).withReduction(5.472),
+                    DCMotor.getKrakenX60(1).withReduction(1 / DRIVE_REDUCTION),
+                    DRIVE_MOTOR_CURRENT_LIMIT,
+                    1
+                ),
+                DRIVETRAIN_WHEELBASE_METERS
+            ), // The robot configuration
             () -> {
               // Boolean supplier that controls when the path will be mirrored for the red alliance
               // This will flip the path being followed to the red side of the field.

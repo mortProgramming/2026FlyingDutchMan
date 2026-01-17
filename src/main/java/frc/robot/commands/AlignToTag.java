@@ -17,7 +17,7 @@ public class AlignToTag extends Command {
     public AlignToTag(CommandSwerveDrivetrain drivetrain, Vision vision, int tagID) {
         this.drivetrain = drivetrain;
         this.vision = vision;
-        this.tagID = tagID;
+        this.tagID = vision.getTagId();
         addRequirements(drivetrain, vision);
     }
 
