@@ -22,10 +22,13 @@ public class Vision extends SubsystemBase {
     private HttpCamera cameraFeed;
     private AprilTagFieldLayout fieldLayout;
     private NetworkTable cameraTable;
+    private NetworkTable llTable;
+
 
     public Vision() {
         fieldLayout = AprilTagFieldLayout.loadField(AprilTagFields.k2025ReefscapeAndyMark);
         cameraTable = NetworkTableInstance.getDefault().getTable(FRONT_CAMERA_NAME);      
+        llTable = NetworkTableInstance.getDefault().getTable("limelight");
     }
 
     @Override
@@ -108,7 +111,54 @@ public class Vision extends SubsystemBase {
     }
     public double[] getPicturePosition() {    
         return new double[]{0.0, 0.0, 0.0};
+    }
 
+    
+    public double getCamTranX() {
+		if (getCamTran().length < 1) {
+			return 0;
+		}
+
+		return (double) getCamTran()[0];
+	}
+
+	public double getCamTranY() {
+		if (getCamTran().length < 1) {
+			return 0;
+		}
+		return (double) getCamTran()[1];
+	}
+
+	public double getCamTranZ() {
+		if (getCamTran().length < 1) {
+			return 0;
+		}
+		return (double) getCamTran()[2];
+	}
+
+	public double getCamTranPitch() {
+		if (getCamTran().length < 1) {
+			return 0;
+		}
+		return (double) getCamTran()[3];
+	}
+
+	public double getCamTranYaw() {
+		if (getCamTran().length < 1) {
+			return 0;
+		}
+		return (double) getCamTran()[4];
+	}
+
+    public double getCamTranRoll() {
+		if (getCamTran().length < 1) {
+			return 0;
+		}
+		return (double) getCamTran()[5];
+	}
+
+    public Number[] getCamTran() {
+        return llTable.getEntry("targetpose_robotspace").getNumberArray(new Number[0]);
     }
 
     public static Vision getInstance() {

@@ -142,6 +142,9 @@ public class RobotContainer {
 
         xbox.x().onTrue(new TimedDriveField(2,0,0,1.5));
 
+        xbox.x().onTrue(new TimedDriveField(2,0,0,1.5));
+
+
     }
     public void configureAuto() {
         autoChooser = new SendableChooser<Command>();

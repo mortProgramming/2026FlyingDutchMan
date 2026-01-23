@@ -10,25 +10,45 @@ public class BetterAlignToTag extends Command{
     private Vision vision;
     private CommandSwerveDrivetrain drivetrain;
     private int tagID;
-
+    private boolean isRight = true;
+    private static final double TARGET_DISTANCE_METERS = -1.0; //1 meter away from the tag
     private boolean tagSeen;
     
     public BetterAlignToTag(){
         vision = vision.getInstance();
-
         drivetrain = RobotContainer.getSwerveDrivetrain();
-
         tagID = vision.getTagId();
-
         tagSeen = false; //when  the camera sees the tag, this will be changed to true
+        double xValue = isRight ? 1.0 : -1.0; //Limelight camera offset from center of robot
         addRequirements(vision, drivetrain);
     }
 
-    //local method 
+    @Override
+    public void initialize(){
+        drivetrain.getAprilTagXController().reset();
+		drivetrain.getAprilTagYController().reset();
+		drivetrain.getAprilTagOmegaController().reset();
+    }
+
+    @Override
+    public void execute(){
+        System.out.println(vision.getRelativeRobotPosition().toString());
+        tagSeen();
+        if(tagSeen){
+            double xSpeed = drivetrain.getAprilTagXController().calculate(vision.getCamTranX(), TARGET_DISTANCE_METERS);
+            double ySpeed = drivetrain.getAprilTagYController().calculate(vision.getCamTranY(), 0);
+            double omegaSpeed = drivetrain.getAprilTagOmegaController().calculate(vision.getCamTranZ(), 0);
+
+            drivetrain.driveRelative(xSpeed, ySpeed, omegaSpeed);
+
+        } else {
+            drivetrain.driveRelative(0, 0, 0);
+        }
+    }
+    //local method
     public void tagSeen(){
         if(vision.hasTag()){
             tagSeen = true;
         }
     }
-    
 }

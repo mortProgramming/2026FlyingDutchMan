@@ -5,10 +5,16 @@ import static edu.wpi.first.units.Units.RadiansPerSecond;
 import static edu.wpi.first.units.Units.RotationsPerSecond;
 import static edu.wpi.first.units.Units.Second;
 import static edu.wpi.first.units.Units.Volts;
+import static frc.robot.configs.constants.PhysicalConstants.Drivetrain.DRIVETRAIN_WHEELBASE_METERS;
+import static frc.robot.configs.constants.PhysicalConstants.Drivetrain.DRIVE_MOTOR_CURRENT_LIMIT;
+import static frc.robot.configs.constants.PhysicalConstants.Drivetrain.DRIVE_REDUCTION;
+import static frc.robot.configs.constants.PhysicalConstants.Drivetrain.MAX_SPEED;
+import static frc.robot.configs.constants.PhysicalConstants.Drivetrain.ROBOT_MASS;
+import static frc.robot.configs.constants.PhysicalConstants.Drivetrain.ROBOT_MOMENT_OF_INERTIA;
+import static frc.robot.configs.constants.PhysicalConstants.Drivetrain.WHEEL_COEFFICIENT_OF_FRICTION;
+import static frc.robot.configs.constants.PhysicalConstants.Drivetrain.WHEEL_DIAMETER;
 
 import java.util.function.Supplier;
-
-import static frc.robot.configs.constants.PhysicalConstants.Drivetrain.*;
 
 import com.ctre.phoenix6.SignalLogger;
 import com.ctre.phoenix6.Utils;
@@ -23,9 +29,10 @@ import com.pathplanner.lib.config.ModuleConfig;
 import com.pathplanner.lib.config.PIDConstants;
 import com.pathplanner.lib.config.RobotConfig;
 import com.pathplanner.lib.controllers.PPHolonomicDriveController;
-import com.pathplanner.lib.util.DriveFeedforwards;
 
 import edu.wpi.first.math.Matrix;
+import edu.wpi.first.math.controller.PIDController;
+import edu.wpi.first.math.controller.ProfiledPIDController;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
@@ -43,6 +50,7 @@ import edu.wpi.first.wpilibj2.command.Subsystem;
 import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine;
 import frc.robot.configs.constants.TunerConstants;
 import frc.robot.configs.constants.TunerConstants.TunerSwerveDrivetrain;
+
 /**
  * Class that extends the Phoenix 6 SwerveDrivetrain class and implements
  * Subsystem so it can easily be used in command-based projects.
@@ -56,6 +64,10 @@ public class CommandSwerveDrivetrain extends TunerSwerveDrivetrain implements Su
     private static final double kSimLoopPeriod = 0.005; // 5 ms
     private Notifier m_simNotifier = null;
     private double m_lastSimTime;
+
+	private PIDController aprilTagXController;
+	private PIDController aprilTagYController;
+	private PIDController aprilTagOmegaController;
 
     /* Blue alliance sees forward as 0 degrees (toward red alliance wall) */
     private static final Rotation2d kBlueAlliancePerspectiveRotation = Rotation2d.kZero;
@@ -157,6 +169,16 @@ public class CommandSwerveDrivetrain extends TunerSwerveDrivetrain implements Su
             startSimThread();
         }
         SwerveModule<TalonFX, TalonFX, CANcoder>[] swerveModules = getModules();
+
+        aprilTagXController = new PIDController(3, 0, 0);
+		aprilTagXController.setTolerance(0.01);
+
+		aprilTagYController = new PIDController(1.1, 0, 0);
+		aprilTagYController.setTolerance(0.05);
+
+		aprilTagOmegaController = new PIDController(0.02, 0, 0);
+		aprilTagOmegaController.setTolerance(0.05);
+
     }
 
     /**
@@ -391,7 +413,7 @@ public class CommandSwerveDrivetrain extends TunerSwerveDrivetrain implements Su
             .withRotationalRate(speeds.omegaRadiansPerSecond);
         setControl(request);
     }
-
+    
     public void configureAutoBuilder(){
         AutoBuilder.configure(
             () -> drivetrain.getPose(), // Robot pose supplier
@@ -429,5 +451,19 @@ public class CommandSwerveDrivetrain extends TunerSwerveDrivetrain implements Su
             },
             this // Reference to this subsystem to set requirements
         );
+    }
+
+    //Stuff for Limelight commands and Drivetrain PIDS
+
+    public PIDController getAprilTagXController() {
+        return aprilTagXController;
+    }
+
+    public PIDController getAprilTagYController() {
+        return aprilTagYController;
+    }
+
+    public PIDController getAprilTagOmegaController() {
+        return aprilTagOmegaController;
     }
 }
