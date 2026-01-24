@@ -24,5 +24,6 @@ public class BasicCommands {
             NamedCommands.registerCommand("Intake", Elevate.intake());
             NamedCommands.registerCommand("GoLimelight", new GoToAprilTag(drivetrain, vision, vision.getTagId()).withTimeout(5.0));    
             NamedCommands.registerCommand("AlignToTag",new AlignToTag(drivetrain, vision, 0));
+            
     }
 }
