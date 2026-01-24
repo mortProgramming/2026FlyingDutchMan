@@ -36,6 +36,9 @@ public class Vision extends SubsystemBase {
         SmartDashboard.putNumber("Tag ID", getTagId());
         SmartDashboard.putNumber("X Degrees", getTX());
         SmartDashboard.putBoolean("Tag Detected?", hasTag());
+        SmartDashboard.putNumber("CamTran X", getCamTranX());
+        SmartDashboard.putNumber("CamTran Y", getCamTranY());
+        SmartDashboard.putNumber("CamTran Z", getCamTranZ());
     }
 
     // ---------- Camera / Limelight Methods ----------
@@ -112,7 +115,6 @@ public class Vision extends SubsystemBase {
     public double[] getPicturePosition() {    
         return new double[]{0.0, 0.0, 0.0};
     }
-
     
     public double getCamTranX() {
 		if (getCamTran().length < 1) {

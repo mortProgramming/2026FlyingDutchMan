@@ -26,6 +26,7 @@ import frc.robot.commands.GoToAprilTag;
 import frc.robot.commands.HuntTag;
 import frc.robot.commands.moveElevator;
 import frc.robot.commands.autons.BasicCommands;
+import frc.robot.commands.autons.BetterAlignToTag;
 import frc.robot.commands.autons.LimelightTest;
 import frc.robot.commands.autons.Taxi;
 import frc.robot.commands.autons.TimedDrive;
@@ -140,9 +141,7 @@ public class RobotContainer {
         //Another Take on "Go To April Tag", lets see how this plays out
         xbox.b().onTrue(new AlignToTag(drivetrain, vision, 1));
 
-        xbox.x().onTrue(new TimedDriveField(2,0,0,1.5));
-
-        xbox.x().onTrue(new TimedDriveField(2,0,0,1.5));
+        xbox.x().whileTrue(new BetterAlignToTag()); //or could use toggle on true
 
 
     }
