@@ -1,4 +1,4 @@
-package frc.robot.commands;
+package frc.robot.commands.autons.apriltag;
 
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.wpilibj2.command.Command;
@@ -30,12 +30,12 @@ public class AlignToTag extends Command {
         if (!vision.hasTag()) {
             System.out.println("yes");
         }
-        
+
         Pose2d tagPose = vision.getFieldTagPose(tagID);
         if (tagPose == null) {
-            //stop robot so it doesn't drift
-            drivetrain.drive(0,0,0);
-            return; //keep running until tag is found
+            // stop robot so it doesn't drift
+            drivetrain.drive(0, 0, 0);
+            return; // keep running until tag is found
         }
 
         Pose2d pose = drivetrain.getPose();
@@ -47,16 +47,15 @@ public class AlignToTag extends Command {
         double desiredAngle = Math.atan2(dy, dx);
         double currentAngle = pose.getRotation().getRadians();
         double angleError = Math.atan2(
-            Math.sin(desiredAngle - currentAngle),
-            Math.cos(desiredAngle - currentAngle)
-        );
+                Math.sin(desiredAngle - currentAngle),
+                Math.cos(desiredAngle - currentAngle));
 
         // p controls
         double kP_xy = 1.3;
         double kP_rot = 2.0;
 
-        double vx = kP_xy * dx;    // forward/back
-        double vy = kP_xy * dy;    // strafe left/right
+        double vx = kP_xy * dx; // forward/back
+        double vy = kP_xy * dy; // strafe left/right
         double rot = kP_rot * angleError;
 
         double maxSpeed = 2.0;
@@ -82,6 +81,6 @@ public class AlignToTag extends Command {
 
     @Override
     public boolean isFinished() {
-        return finished; 
+        return finished;
     }
 }

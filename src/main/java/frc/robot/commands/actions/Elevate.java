@@ -1,4 +1,4 @@
-package frc.robot.commands;
+package frc.robot.commands.actions;
 
 import static frc.robot.configs.constants.PIDconstants.Elevator.POS_CONSTRAINTS;
 import static frc.robot.configs.constants.PIDconstants.Elevator.POS_TELEOP_CONSTRAINTS;
@@ -18,7 +18,6 @@ import static frc.robot.configs.constants.PhysicalConstants.Elevator.ELEVATOR_PR
 import static frc.robot.configs.constants.PhysicalConstants.Elevator.ELEVATOR_REST_HEIGHT;
 import static frc.robot.configs.constants.PhysicalConstants.Elevator.ELEVATOR_UPPER_LIMIT_SWITCH_HEIGHT;
 import static frc.robot.configs.constants.PhysicalConstants.Elevator.SPEED_FACTOR;
-
 
 import edu.wpi.first.math.trajectory.TrapezoidProfile.Constraints;
 import edu.wpi.first.wpilibj2.command.Command;
@@ -41,6 +40,7 @@ public class Elevate extends Command {
         this.elevatorAcceleration = POS_CONSTRAINTS.maxAcceleration;
         addRequirements(elevator);
     }
+
     public Elevate(double targetPosition, CommandXboxController xbox) {
         this.elevator = Elevator.getInstance();
         this.targetPosition = targetPosition;
@@ -74,12 +74,11 @@ public class Elevate extends Command {
     @Override
     public void execute() {
         elevator.setElevatorMotorPercent(
-            -elevator.getPIDController().calculate(
-                elevator.getElevatorPositionInches(),
-                targetPosition
-            )
-        );
+                -elevator.getPIDController().calculate(
+                        elevator.getElevatorPositionInches(),
+                        targetPosition));
     }
+
     public void moveWithJoystick(double set, CommandXboxController xbox) {
         elevator.setSpeed(-xbox.getLeftY() * SPEED_FACTOR);
         // double motorOutput = value * 1; // adjust max speed as needed
@@ -96,58 +95,70 @@ public class Elevate extends Command {
         elevator.setElevatorMotorPercent(0);
     }
 
-    public static Command l1() { 
-        return new Elevate(ELEVATOR_L1_HEIGHT); 
+    public static Command l1() {
+        return new Elevate(ELEVATOR_L1_HEIGHT);
     }
-    public static Command l2() { 
-        return new Elevate(ELEVATOR_L2_HEIGHT); 
+
+    public static Command l2() {
+        return new Elevate(ELEVATOR_L2_HEIGHT);
     }
-    public static Command l3() { 
-        return new Elevate(ELEVATOR_L3_HEIGHT); 
+
+    public static Command l3() {
+        return new Elevate(ELEVATOR_L3_HEIGHT);
     }
-    public static Command l4() { 
-        return new Elevate(ELEVATOR_L4_HEIGHT); 
+
+    public static Command l4() {
+        return new Elevate(ELEVATOR_L4_HEIGHT);
     }
 
     public static Command teleopL4() {
         return new Elevate(
-            ELEVATOR_L4_HEIGHT,
-            POS_TELEOP_CONSTRAINTS.maxVelocity,
-            POS_TELEOP_CONSTRAINTS.maxAcceleration
-        );
+                ELEVATOR_L4_HEIGHT,
+                POS_TELEOP_CONSTRAINTS.maxVelocity,
+                POS_TELEOP_CONSTRAINTS.maxAcceleration);
     }
 
-    public static Command intake() { 
-        return new Elevate(ELEVATOR_INTAKE_HEIGHT); 
+    public static Command intake() {
+        return new Elevate(ELEVATOR_INTAKE_HEIGHT);
     }
-    public static Command autoIntake() { 
-        return new Elevate(ELEVATOR_AUTO_INTAKE_HEIGHT); 
+
+    public static Command autoIntake() {
+        return new Elevate(ELEVATOR_AUTO_INTAKE_HEIGHT);
     }
-    public static Command zero() { 
-        return new Elevate(ELEVATOR_LOWER_LIMIT_SWITCH_HEIGHT); 
+
+    public static Command zero() {
+        return new Elevate(ELEVATOR_LOWER_LIMIT_SWITCH_HEIGHT);
     }
-    public static Command max() { 
-        return new Elevate(-ELEVATOR_UPPER_LIMIT_SWITCH_HEIGHT); 
+
+    public static Command max() {
+        return new Elevate(-ELEVATOR_UPPER_LIMIT_SWITCH_HEIGHT);
     }
-    public static Command rest() { 
-        return new Elevate(ELEVATOR_REST_HEIGHT); 
+
+    public static Command rest() {
+        return new Elevate(ELEVATOR_REST_HEIGHT);
     }
-    public static Command lowAlgae() { 
-        return new Elevate(ELEVATOR_LOW_ALGAE_HEIGHT); 
+
+    public static Command lowAlgae() {
+        return new Elevate(ELEVATOR_LOW_ALGAE_HEIGHT);
     }
-    public static Command highAlgae() { 
-        return new Elevate(ELEVATOR_HIGH_ALGAE_HEIGHT); 
+
+    public static Command highAlgae() {
+        return new Elevate(ELEVATOR_HIGH_ALGAE_HEIGHT);
     }
-    public static Command pop() { 
-        return new Elevate(ELEVATOR_POP_HEIGHT); 
+
+    public static Command pop() {
+        return new Elevate(ELEVATOR_POP_HEIGHT);
     }
-    public static Command processor() { 
-        return new Elevate(ELEVATOR_PROCESSOR_HEIGHT); 
+
+    public static Command processor() {
+        return new Elevate(ELEVATOR_PROCESSOR_HEIGHT);
     }
-    public static Command floor() { 
-        return new Elevate(ELEVATOR_FLOOR_HEIGHT); 
+
+    public static Command floor() {
+        return new Elevate(ELEVATOR_FLOOR_HEIGHT);
     }
-    public static Command barge() { 
-        return new Elevate(ELEVATOR_BARGE_HEIGHT); 
+
+    public static Command barge() {
+        return new Elevate(ELEVATOR_BARGE_HEIGHT);
     }
 }

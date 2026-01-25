@@ -20,17 +20,17 @@ import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.button.CommandJoystick;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
 import edu.wpi.first.wpilibj2.command.button.Trigger;
-import frc.robot.commands.AlignToTag;
-import frc.robot.commands.Elevate;
-import frc.robot.commands.GoToAprilTag;
-import frc.robot.commands.HuntTag;
-import frc.robot.commands.moveElevator;
+import frc.robot.commands.actions.Elevate;
+import frc.robot.commands.actions.MoveElevator;
 import frc.robot.commands.autons.BasicCommands;
-import frc.robot.commands.autons.BetterAlignToTag;
-import frc.robot.commands.autons.LimelightTest;
-import frc.robot.commands.autons.Taxi;
-import frc.robot.commands.autons.TimedDrive;
-import frc.robot.commands.autons.TimedDriveField;
+import frc.robot.commands.autons.apriltag.AlignToTag;
+import frc.robot.commands.autons.apriltag.BetterAlignToTag;
+import frc.robot.commands.autons.apriltag.GoToAprilTag;
+import frc.robot.commands.autons.apriltag.HuntTag;
+import frc.robot.commands.autons.apriltag.LimelightTest;
+import frc.robot.commands.autons.timed.Taxi;
+import frc.robot.commands.autons.timed.TimedDrive;
+import frc.robot.commands.autons.timed.TimedDriveField;
 import frc.robot.configs.constants.TunerConstants;
 import frc.robot.subsystems.CommandSwerveDrivetrain;
 import frc.robot.subsystems.Elevator;
@@ -49,15 +49,15 @@ import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.InstantCommand;
 
-
 public class RobotContainer {
     private double MaxSpeed = TunerConstants.kSpeedAt12Volts.in(MetersPerSecond); // kSpeedAt12Volts desired top speed
-    private double MaxAngularRate = RotationsPerSecond.of(0.75).in(RadiansPerSecond); // 3/4 of a rotation per second max angular velocity
+    private double MaxAngularRate = RotationsPerSecond.of(0.75).in(RadiansPerSecond); // 3/4 of a rotation per second
+                                                                                      // max angular velocity
 
     /* Setting up bindings for necessary control of the swerve drive platform */
     private final SwerveRequest.FieldCentric drive = new SwerveRequest.FieldCentric()
-        .withDeadband(MaxSpeed * 0.1).withRotationalDeadband(MaxAngularRate * 0.1)
-        .withDriveRequestType(DriveRequestType.OpenLoopVoltage); // Use open-loop control for drive motors
+            .withDeadband(MaxSpeed * 0.1).withRotationalDeadband(MaxAngularRate * 0.1)
+            .withDriveRequestType(DriveRequestType.OpenLoopVoltage); // Use open-loop control for drive motors
     private final SwerveRequest.SwerveDriveBrake brake = new SwerveRequest.SwerveDriveBrake();
     private final SwerveRequest.PointWheelsAt point = new SwerveRequest.PointWheelsAt();
 
@@ -81,27 +81,23 @@ public class RobotContainer {
         // Note that X is defined as forward according to WPILib convention,
         // and Y is defined as to the left according to WPILib convention.
         drivetrain.setDefaultCommand(
-            // Drivetrain will execute this command periodically
-            drivetrain.applyRequest(() ->
-                drive.withVelocityX(-xbox.getLeftY() * MaxSpeed) // Drive forward with negative Y (forward)
-            .withVelocityY(-xbox.getLeftX() * MaxSpeed) // Drive left with negative X (left)
-            .withRotationalRate(-xbox.getRightX() * MaxAngularRate) // Drive counterclockwise with negative X (left)
-            )
-        );
+                // Drivetrain will execute this command periodically
+                drivetrain.applyRequest(() -> drive.withVelocityX(-xbox.getLeftY() * MaxSpeed) // Drive forward with
+                                                                                               // negative Y (forward)
+                        .withVelocityY(-xbox.getLeftX() * MaxSpeed) // Drive left with negative X (left)
+                        .withRotationalRate(-xbox.getRightX() * MaxAngularRate) // Drive counterclockwise with negative
+                                                                                // X (left)
+                ));
         System.out.println(-xbox.getLeftY() * MaxSpeed);
 
-        xbox.b().whileTrue(drivetrain.run(() ->
-            drivetrain.applyRequest(() ->
-                drive.withVelocityX(-xbox.getLeftY() * MaxSpeed)
-                .withVelocityY(0)
-                .withRotationalDeadband(0)
-            )
-        )
-    );
+        xbox.b().whileTrue(
+                drivetrain.run(() -> drivetrain.applyRequest(() -> drive.withVelocityX(-xbox.getLeftY() * MaxSpeed)
+                        .withVelocityY(0)
+                        .withRotationalDeadband(0))));
 
         // joystick.a().whileTrue(drivetrain.applyRequest(() -> brake));
         // joystick.b().whileTrue(drivetrain.applyRequest(() ->
-            point.withModuleDirection(new Rotation2d(-joystick.getY(), -joystick.getX()));
+        point.withModuleDirection(new Rotation2d(-joystick.getY(), -joystick.getX()));
         // ));
 
         // Run SysId routines when holding back/start and X/Y.
@@ -120,53 +116,57 @@ public class RobotContainer {
         wController.pov(180).onTrue(Elevate.l3());
         wController.pov(0).onTrue(Elevate.l4());
 
-        //Drive Stop Command
-        xbox.y().toggleOnTrue(drivetrain.driveLockCommand(0,0,0));
+        // Drive Stop Command
+        xbox.y().toggleOnTrue(drivetrain.driveLockCommand(0, 0, 0));
 
-        //Safe control incase bad things happen
-        new Trigger(() -> wController.getLeftY() > 0.05).whileTrue(new moveElevator(wController));
-        new Trigger(() -> wController.getLeftY() < -0.05).whileTrue(new moveElevator(wController));
+        // Safe control incase bad things happen
+        new Trigger(() -> wController.getLeftY() > 0.05).whileTrue(new MoveElevator(wController));
+        new Trigger(() -> wController.getLeftY() < -0.05).whileTrue(new MoveElevator(wController));
 
-        wController.a().whileTrue(new moveElevator(0.2));
-        wController.b().whileTrue(new moveElevator(-0.2));
-        // Hunt Tag - Teleop - while holding button 3 on joystick should be able to angle and 
+        wController.a().whileTrue(new MoveElevator(0.2));
+        wController.b().whileTrue(new MoveElevator(-0.2));
+        // Hunt Tag - Teleop - while holding button 3 on joystick should be able to
+        // angle and
         // align toward the april tag to move toward it and away from it
-        
+
         // xbox.x().whileTrue(new HuntTag(drivetrain, vision));
 
-        // Go To April Tag - Auton - when a is pressed go to april tag within distance set to score 
+        // Go To April Tag - Auton - when a is pressed go to april tag within distance
+        // set to score
         // (set to 10cm and 5 degrees currently)
         xbox.a().onTrue(new GoToAprilTag(drivetrain, vision, 1));
 
-        //Another Take on "Go To April Tag", lets see how this plays out
+        // Another Take on "Go To April Tag", lets see how this plays out
         xbox.b().onTrue(new AlignToTag(drivetrain, vision, 1));
 
-        xbox.x().whileTrue(new BetterAlignToTag()); //or could use toggle on true
-
+        xbox.x().whileTrue(new BetterAlignToTag()); // or could use toggle on true
 
     }
+
     public void configureAuto() {
         autoChooser = new SendableChooser<Command>();
-		autoChooser.setDefaultOption("nothing", null);
-		autoChooser.addOption("Timed Taxi", new Taxi());
+        autoChooser.setDefaultOption("nothing", null);
+        autoChooser.addOption("Timed Taxi", new Taxi());
         autoChooser.addOption("Limelight Test", new LimelightTest(drivetrain, vision, 0));
 
-        //Pathplanner autos WIP
+        // Pathplanner autos WIP
         autoChooser.addOption("LimelightTest", new PathPlannerAuto("Please Work"));
 
-		SmartDashboard.putData("Auton Chooser", autoChooser);
+        SmartDashboard.putData("Auton Chooser", autoChooser);
     }
-    
 
-    //I'm lazy so... Make this method "configureAutoBuilder()" work with methods and varibles utilized correctly, check how this team configured
-    //There autos since they used ctre swerve like us: https://github.com/HuskieRobotics/frc-software-2025
-    //So getpose (needs odomentry object and stuff), setrobotposition (needs robot pose and odometry) 
+    // I'm lazy so... Make this method "configureAutoBuilder()" work with methods
+    // and varibles utilized correctly, check how this team configured
+    // There autos since they used ctre swerve like us:
+    // https://github.com/HuskieRobotics/frc-software-2025
+    // So getpose (needs odomentry object and stuff), setrobotposition (needs robot
+    // pose and odometry)
     // and overall make sure each method and varible is accounted for
-    //This is important for pathplanner and making the get pose method is helpful to not run into problems with Limelight
-    //So GOOD LUCK!
-    
-// SmartDashboard.putString("AutoBuilderConfigured", "true");
+    // This is important for pathplanner and making the get pose method is helpful
+    // to not run into problems with Limelight
+    // So GOOD LUCK!
 
+    // SmartDashboard.putString("AutoBuilderConfigured", "true");
 
     public Command getAutonomousCommand() {
         return Commands.print("No autonomous command configured");
@@ -175,8 +175,9 @@ public class RobotContainer {
     public static CommandSwerveDrivetrain getSwerveDrivetrain() {
         return drivetrain;
     }
-    	public static Command getPlanned(String plan) {
-		BasicCommands.setCommands();
-		return new PathPlannerAuto(plan);
-	}
+
+    public static Command getPlanned(String plan) {
+        BasicCommands.setCommands();
+        return new PathPlannerAuto(plan);
+    }
 }

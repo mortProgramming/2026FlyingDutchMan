@@ -1,4 +1,4 @@
-package frc.robot.commands;
+package frc.robot.commands.autons.apriltag;
 
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj.Joystick;
@@ -13,14 +13,15 @@ public class HuntTag extends Command {
     private final Vision vision;
     private final Joystick joystick;
     private final double maxRotSpeed;
-    private final double maxForwardSpeed; 
+    private final double maxForwardSpeed;
 
     public HuntTag(CommandSwerveDrivetrain drivetrain, Vision vision) {
         this(drivetrain, vision, new Joystick(0), 3.0, 2.0);
         addRequirements(drivetrain, vision);
     }
 
-    public HuntTag(CommandSwerveDrivetrain drivetrain, Vision vision, Joystick joystick, double maxForwardSpeed, double maxRotSpeed) {
+    public HuntTag(CommandSwerveDrivetrain drivetrain, Vision vision, Joystick joystick, double maxForwardSpeed,
+            double maxRotSpeed) {
         this.drivetrain = drivetrain;
         this.vision = vision;
         this.joystick = joystick;
@@ -30,7 +31,7 @@ public class HuntTag extends Command {
     }
 
     @Override
-    public void initialize() { 
+    public void initialize() {
 
     }
 
@@ -41,12 +42,12 @@ public class HuntTag extends Command {
             if (vision.hasTag()) {
                 double[] data = vision.getPicturePosition();
                 double xAngle = data[0];
-                double rotCommand = Math.max(-maxRotSpeed, Math.min(maxRotSpeed, -xAngle * 0.03)); // P control 
+                double rotCommand = Math.max(-maxRotSpeed, Math.min(maxRotSpeed, -xAngle * 0.03)); // P control
 
                 double forwardCommand = -joystick.getY() * maxForwardSpeed;
 
                 drivetrain.drive(forwardCommand, 0, rotCommand);
-                
+
             } else {
                 drivetrain.drive(0, 0, 0); // stop if no tag
             }

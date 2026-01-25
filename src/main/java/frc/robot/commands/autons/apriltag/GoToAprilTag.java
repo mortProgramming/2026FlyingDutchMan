@@ -1,4 +1,4 @@
-package frc.robot.commands;
+package frc.robot.commands.autons.apriltag;
 
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.wpilibj2.command.Command;
@@ -29,7 +29,7 @@ public class GoToAprilTag extends Command {
         }
 
         Pose2d robotPose = drivetrain.getPose();
-        
+
         if (tagPose != null) {
             double dx = tagPose.getX() - robotPose.getX();
             double dy = tagPose.getY() - robotPose.getY();
@@ -44,11 +44,10 @@ public class GoToAprilTag extends Command {
             double currentAngle = robotPose.getRotation().getRadians();
 
             double angleError = Math.atan2(Math.sin(desiredAngle - currentAngle),
-            Math.cos(desiredAngle - currentAngle));
+                    Math.cos(desiredAngle - currentAngle));
 
             double rot = kProt * angleError;
             rot = clamp(rot, -2.5, 2.5);
-            
 
             drivetrain.drive(vx, vy, rot);
         }
@@ -58,8 +57,8 @@ public class GoToAprilTag extends Command {
     public boolean isFinished() {
         Pose2d tagPose = vision.getFieldTagPose(tagID);
 
-        if (!vision.hasTag() || tagPose == null) 
-        return false;
+        if (!vision.hasTag() || tagPose == null)
+            return false;
 
         Pose2d robotPose = drivetrain.getPose();
 
