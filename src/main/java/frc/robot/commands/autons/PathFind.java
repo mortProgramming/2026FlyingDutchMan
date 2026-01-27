@@ -1,6 +1,9 @@
 package frc.robot.commands.autons;
 
+import com.pathplanner.lib.auto.AutoBuilder;
 import com.pathplanner.lib.path.PathConstraints;
+import com.pathplanner.lib.path.PathPlannerPath;
+
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.wpilibj2.command.Command;
 import frc.robot.subsystems.CommandSwerveDrivetrain;
@@ -58,8 +61,9 @@ public class PathFind extends Command {
         }
         drivetrain.drive(0, 0, 0); // this might change if after the path that was generated on the fly was
                                    // followed, it follows another pre-determined path
-        // PathPlannerPath pathPostFly = PathPlannerPath.fromPathFile("Example Path");
-        // \nAutoBuilder.followPath(path); ????? //TODO number 3
+        // PathPlannerPath pathPostFly = PathPlannerPath.fromPathFile(null); //giving an
+        // error because navgrid.json file doesnt exist
+        // AutoBuilder.followPath(pathPostFly); //TODO number 3
     }
 
     @Override
